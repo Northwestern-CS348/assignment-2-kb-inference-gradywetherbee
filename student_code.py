@@ -88,7 +88,7 @@ class KnowledgeBase(object):
         Args:
             fact_rule (Fact or Rule): Fact or Rule we're asserting
         """
-        printv("Asserting {!r}", 0, verbose, [fact_rule])
+        print("Asserting {!r}", 0, verbose, [fact_rule])
         self.kb_add(fact_rule)
 
     def kb_ask(self, fact):
@@ -128,7 +128,54 @@ class KnowledgeBase(object):
         printv("Retracting {!r}", 0, verbose, [fact])
         ####################################################
         # Student code goes here
-        
+
+
+
+        # for item in fact.supports_facts:
+        #     self.kb_retract(item)
+        # for item in fact.supports_rules:
+        #     self.kb_retract(item)
+
+        # Case: purely asserted fact -> retracted directly so it's removed
+        if type(fact) == Fact:
+
+            if fact.asserted:
+                if fact.supported_by:
+                    fact.asserted = False
+                    return
+
+                else: # Fact not supported
+                    for child in fact.supports_facts:
+                        if not child.asserted:
+                            self.kb_retract(child)
+
+                        else:
+                            child.supported_by.remove(fact)
+
+            else: # Fact purely inferred
+                for parent in fact.supported_by:
+                    parent.supports_facts.remove(fact)
+
+                for child in fact.supports_facts:
+                    child.supported_by.remove(fact)
+                    self.kb_retract(child)
+                for child in fact.supports_rules:
+                    child.supported_by.remove(fact)
+
+            self.facts.remove(fact)
+        return
+
+
+
+
+
+
+
+
+
+
+
+
 
 class InferenceEngine(object):
     def fc_infer(self, fact, rule, kb):
@@ -140,9 +187,57 @@ class InferenceEngine(object):
             kb (KnowledgeBase) - A KnowledgeBase
 
         Returns:
-            Nothing            
+            Nothing
         """
         printv('Attempting to infer from {!r} and {!r} => {!r}', 1, verbose,
             [fact.statement, rule.lhs, rule.rhs])
         ####################################################
+        ####################################################
         # Student code goes here
+        # Find matches for the first element of the left hand side list
+        binding = match(fact.statement, rule.lhs[0])
+
+        if binding:
+            if len(rule.lhs) > 1:
+                # Create an empty list to go through the rest of the left hand side
+                rest = []
+                # Then add the binding to each item #
+                for el in rule.lhs[1:]:
+                    new_statement = instantiate(el, binding)
+                    rest.append(new_statement)
+                r = Rule(
+                    # See "logical_classes.py" line 93 for constructor for Rule
+                    # The actual statement of the rule we're adding
+                    # [[LHS - statements that need to be true], [to make RHS true]]
+                    [rest, instantiate(rule.rhs, binding)],
+                    # The facts/rules it's supported by, in this case the original params #
+                    [rule, fact]
+                )
+                # print(r)
+                # Assert this new rule in kb
+                kb.kb_assert(r)
+
+                # Mark the original param fact and rule as supporting the new rule
+                kb.rules[kb.rules.index(rule)].supports_rules.append(r)
+                kb.facts[kb.facts.index(fact)].supports_rules.append(r)
+            else:
+                we_learned_something = instantiate(rule.rhs, binding)
+                ff = Fact(
+                    # See "logical_classes.py" line 18 for constructor for Fact
+                    # the actual statement of the rule we're adding #
+                    we_learned_something,
+                    # the facts/rules it's supported by, in this case the original params #
+                    [rule, fact]
+                )
+                print(ff.__class__)
+                kb.kb_assert(ff)
+
+                # Mark the original param fact and rule as supporting the new rule
+                kb.rules[kb.rules.index(rule)].supports_facts.append(ff)
+                print(kb.rules.index(rule))
+                kb.facts[kb.facts.index(fact)].supports_facts.append(ff)
+                print(kb.facts.index(fact))
+
+
+
+
