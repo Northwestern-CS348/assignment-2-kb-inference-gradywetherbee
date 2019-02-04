@@ -117,6 +117,11 @@ class KnowledgeBase(object):
             return []
 
     def kb_retract(self, fact):
+        if fact.asserted and type(fact) == Fact:
+            fact.asserted = False
+        self.kb_retractRecursive(fact)
+
+    def kb_retractRecursive(self, fact):
         """Retract a fact from the KB
 
         Args:
@@ -136,39 +141,48 @@ class KnowledgeBase(object):
         # for item in fact.supports_rules:
         #     self.kb_retract(item)
 
-        # Case: purely asserted fact -> retracted directly so it's removed
+        # # Case: purely asserted fact -> retracted directly so it's removed
+
+        if fact.asserted or type(fact) != Fact or type(fact) != Rule:
+            return
         if type(fact) == Fact:
-
-            if fact.asserted:
-                if fact.supported_by:
-                    fact.asserted = False
-                    return
-
-                else: # Fact not supported
-                    for child in fact.supports_facts:
-                        if not child.asserted:
-                            self.kb_retract(child)
-
-                        else:
-                            child.supported_by.remove(fact)
-
-            else: # Fact purely inferred
-                for parent in fact.supported_by:
-                    parent.supports_facts.remove(fact)
-
+            if not self.facts.count(fact):
+                return
+            fact = self._get_fact(fact)
+            if not fact.supported_by:
                 for child in fact.supports_facts:
+                    # child = self._get_fact(child)
                     child.supported_by.remove(fact)
                     self.kb_retract(child)
                 for child in fact.supports_rules:
+                    # child = self._get_rule(child)
+                    # for pair in child.supported_by:
+                    #     if pair[0] == fact:
+                    #         child.supported_by.remove(pair)
+                    #     if len(child.supported_by) == 0:
                     child.supported_by.remove(fact)
-
-            self.facts.remove(fact)
-        return
-
-
-
+                    self.kb_retract(child)
+                # for parent in fact.supported_by:
+                #     parent.supports_facts.remove(fact)
+                self.facts.remove(fact)
 
 
+        if type(fact) == Rule:
+            if not self.rules.count(fact):
+                return
+            fact = self._get_rule(fact)
+            if not fact.supported_by:
+                for child in fact.supports_facts:
+                    child = self._get_fact(child)
+                    child.supported_by.remove(fact)
+                    self.kb_retract(child)
+                for child in fact.supports_rules:
+                    child = self._get_rule(child)
+                    child.supported_by.remove(fact)
+                    self.kb_retract(child)
+                # for parent in fact.supported_by:
+                #     parent.supports_facts.remove(fact)
+                self.rules.remove(fact)
 
 
 
@@ -176,6 +190,41 @@ class KnowledgeBase(object):
 
 
 
+
+        # if type(fact) == Fact:
+        #     fact = self._get_fact(fact)
+        #
+        #     if fact.asserted:
+        #         if fact.supported_by:
+        #             fact.asserted = False
+        #             return
+        #
+        #         else: # Fact not supported
+        #             for child in fact.supports_facts:
+        #                 if not child.asserted:
+        #                     self.kb_retract(child)
+        #
+        #                 else:
+        #                     child.supported_by.remove(fact)
+        #
+        #             for child in fact.supports_rules:
+        #                 if not child.asserted:
+        #                     self.kb_retract(child)
+        #
+        #                 else:
+        #                     child.supported_by.remove(fact)
+        #
+        #     else: # Fact purely inferred
+        #         for parent in fact.supported_by:
+        #             parent.supports_facts.remove(fact)
+        #
+        #         for child in fact.supports_facts:
+        #             child.supported_by.remove(fact)
+        #             self.kb_retract(child)
+        #         for child in fact.supports_rules:
+        #             child.supported_by.remove(fact)
+        #
+        #     self.facts.remove(fact)
 
 class InferenceEngine(object):
     def fc_infer(self, fact, rule, kb):
@@ -214,12 +263,13 @@ class InferenceEngine(object):
                     [rule, fact]
                 )
                 # print(r)
+                r.asserted = False
+                # Mark the original param fact and rule as supporting the new rule
+                rule.supports_rules.append(r)
+                fact.supports_rules.append(r)
+
                 # Assert this new rule in kb
                 kb.kb_assert(r)
-
-                # Mark the original param fact and rule as supporting the new rule
-                kb.rules[kb.rules.index(rule)].supports_rules.append(r)
-                kb.facts[kb.facts.index(fact)].supports_rules.append(r)
             else:
                 we_learned_something = instantiate(rule.rhs, binding)
                 ff = Fact(
@@ -230,13 +280,13 @@ class InferenceEngine(object):
                     [rule, fact]
                 )
                 print(ff.__class__)
-                kb.kb_assert(ff)
-
+                ff.asserted = False
                 # Mark the original param fact and rule as supporting the new rule
-                kb.rules[kb.rules.index(rule)].supports_facts.append(ff)
-                print(kb.rules.index(rule))
-                kb.facts[kb.facts.index(fact)].supports_facts.append(ff)
-                print(kb.facts.index(fact))
+                # Mark the original param fact and rule as supporting the new rule
+                rule.supports_facts.append(ff)
+                fact.supports_facts.append(ff)
+
+                kb.kb_assert(ff)
 
 
 
