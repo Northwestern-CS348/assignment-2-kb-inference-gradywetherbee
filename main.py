@@ -107,19 +107,18 @@ class KBTest(unittest.TestCase):
         self.assertEqual(str(answer[0]), "?Y : TonyStark")
 
     def test8(self):
-        """this student generated test ensures retracting a fact that supports inferences two links away
+        """this student generated test ensures retracting a fact that supports inferences 2 links away
         also retracts all facts down that chain
         """
         r1 = read.parse_input("fact: (techgenius profHammond)")
         print(' Retracting', r1)
         self.KB.kb_retract(r1)
-        r2 = read.parse_input("fact: (talkslike profHammond)")
+        r2 = read.parse_input("fact: (talkslike profHammond TonyStark)")
         print(' Retracting', r2)
         self.KB.kb_retract(r2)
         ask1 = read.parse_input("fact: (isliterally ?X TonyStark)")
         print(' Asking if', ask1)
         answer = self.KB.kb_ask(ask1)
-        print('test', answer.__class__)
         self.assertFalse(answer)
         ask2 = read.parse_input("fact: (IronMan ?X)")
         print(' Asking if', ask2)
