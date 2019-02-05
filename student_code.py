@@ -145,15 +145,15 @@ class KnowledgeBase(object):
                 for child in fact.supports_rules:
                     for pair in child.supported_by:
                         if pair[0] == fact:
-                            child.supported_by.remove(pair)
+                            self._get_rule(child).supported_by.remove(pair)
                     if len(child.supported_by) == 0:
-                        self.kb_retractRecursive(child)
+                        self.kb_retractRecursive(self._get_rule(child))
                 for child in fact.supports_facts:
                     for pair in child.supported_by:
                         if pair[0] == fact:
-                            child.supported_by.remove(pair)
+                            self._get_fact(child).supported_by.remove(pair)
                     if len(child.supported_by) == 0:
-                       self.kb_retractRecursive(child)
+                       self.kb_retractRecursive(self._get_fact(child))
 
                 self.facts.remove(fact)
 
@@ -166,16 +166,16 @@ class KnowledgeBase(object):
                 for child in rule.supports_rules:
                     for pair in child.supported_by:
                        if pair[1] == rule:
-                            child.supported_by.remove(pair)
+                           self._get_rule(child).supported_by.remove(pair)
                     if len(child.supported_by) == 0:
-                      self.kb_retractRecursive(child)
+                      self.kb_retractRecursive(self._get_rule(child))
 
                 for child in rule.supports_facts:
                     for pair in child.supported_by:
                         if pair[1] == rule:
-                            child.supported_by.remove(pair)
+                            self._get_fact(child).supported_by.remove(pair)
                     if len(child.supported_by) == 0:
-                        self.kb_retractRecursive(child)
+                        self.kb_retractRecursive(self._get_fact(child))
                 # for parent in fact.supported_by:
                 #     parent.supports_facts.remove(fact)
                 self.rules.remove(rule)
@@ -198,6 +198,7 @@ class InferenceEngine(object):
         ####################################################
         # Student code goes here
         # Find matches for the first element of the left hand side list
+
         binding = match(fact.statement, rule.lhs[0])
 
         if binding:
