@@ -54,7 +54,7 @@ class KnowledgeBase(object):
         Returns:
             None
         """
-        printv("Adding {!r}", 1, verbose, [fact_rule])
+        # printv("Adding {!r}", 1, verbose, [fact_rule])
         if isinstance(fact_rule, Fact):
             if fact_rule not in self.facts:
                 self.facts.append(fact_rule)
@@ -88,7 +88,7 @@ class KnowledgeBase(object):
         Args:
             fact_rule (Fact or Rule): Fact or Rule we're asserting
         """
-        print("Asserting {!r}", 0, verbose, [fact_rule])
+        # print("Asserting {!r}", 0, verbose, [fact_rule])
         self.kb_add(fact_rule)
 
     def kb_ask(self, fact):
@@ -100,7 +100,7 @@ class KnowledgeBase(object):
         Returns:
             listof Bindings|False - list of Bindings if result found, False otherwise
         """
-        print("Asking {!r}".format(fact))
+        # print("Asking {!r}".format(fact))
         if factq(fact):
             f = Fact(fact.statement)
             bindings_lst = ListOfBindings()
@@ -113,7 +113,7 @@ class KnowledgeBase(object):
             return bindings_lst if bindings_lst.list_of_bindings else []
 
         else:
-            print("Invalid ask:", fact.statement)
+            # print("Invalid ask:", fact.statement)
             return []
 
     def kb_retract(self, fact):
@@ -130,7 +130,7 @@ class KnowledgeBase(object):
         Returns:
             None
         """
-        printv("Retracting {!r}", 0, verbose, [fact])
+        # printv("Retracting {!r}", 0, verbose, [fact])
         ####################################################
         # Student code goes here
         if type(fact) != Fact and type(fact) != Rule:
@@ -192,8 +192,8 @@ class InferenceEngine(object):
         Returns:
             Nothing
         """
-        printv('Attempting to infer from {!r} and {!r} => {!r}', 1, verbose,
-            [fact.statement, rule.lhs, rule.rhs])
+        # printv('Attempting to infer from {!r} and {!r} => {!r}', 1, verbose,
+        #     [fact.statement, rule.lhs, rule.rhs])
         ####################################################
         ####################################################
         # Student code goes here
@@ -217,6 +217,7 @@ class InferenceEngine(object):
                     [[fact, rule]]
                 )
                 # print(r)
+                # False by default? Doesn't hurt to check
                 r.asserted = False
                 # Mark the original param fact and rule as supporting the new rule
                 rule.supports_rules.append(r)
@@ -233,7 +234,6 @@ class InferenceEngine(object):
                     # the facts/rules it's supported by, in this case the original params #
                     [[fact, rule]]
                 )
-                print(f.__class__)
                 f.asserted = False
                 # Mark the original param fact and rule as supporting the new rule
                 # Mark the original param fact and rule as supporting the new rule

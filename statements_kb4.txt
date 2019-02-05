@@ -37,4 +37,3 @@ rule: ((isliterally ?x TonyStark) -> (IronMan ?x))
 rule: ((IronMan ?x) -> (Avenger ?x))
 rule: ((techgenius ?x) -> (smart ?x))
 rule: ((techgenius ?x) -> (employable ?x))
-
